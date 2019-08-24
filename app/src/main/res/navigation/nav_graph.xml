@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/chooseFragment">
+
+    <fragment
+        android:id="@+id/chooseFragment"
+        android:name="trelico.ru.allcastmvvm.screens.choose.ChooseFragment"
+        android:label="fragment_choose"
+        tools:layout="@layout/fragment_choose" />
+    <activity
+        android:id="@+id/playerActivity"
+        android:name="trelico.ru.allcastmvvm.screens.player.PlayerActivity"
+        android:label="activity_player"
+        tools:layout="@layout/activity_player" />
+</navigation>

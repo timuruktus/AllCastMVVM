@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
+    <color name="primaryText">#BF010101</color>
+    <color name="secondaryText">#80010101</color>
+    <color name="brightText">#80FFFFFF</color>
+    <color name="lightText">#E2FFFFFF</color>
+
+    <!--APPLICATIONS-->
+    <color name="telegram">#0088CC</color>
+</resources>

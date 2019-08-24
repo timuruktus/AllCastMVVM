@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Cast</string>
+
+    <string name="choose_source_app">Выберите приложения - источники:</string>
+    <string name="understand">Понял</string>
+    <string name="telegram">Telegram</string>
+    <string name="we_will_add_later">Добавим позже</string>
+    <string name="allcast">CAST</string>
+    <string name="telegram_hint">Сейчас откроется приложение Telegram. Выделите небоходимые посты
+        из одного канала и нажмите кнопку "скопировать". Приложение AllCast откроется заново.
+        <b>У вас должно быть установлено приложение Telegram.</b></string>
+    <string name="error_happened">Произошла ошибка</string>
+    <string name="next">Следующий</string>
+    <string name="play">Играть</string>
+    <string name="pause">Приостановить</string>
+    <string name="previous">Предыдущий</string>
+    <string name="title_activity_player">PlayerActivity</string>
+    <string name="podcast_text">Текст подкаста</string>
+    <string name="podcast_description">Описание подкаста</string>
+    <string name="close">Закрыть</string>
+    <string name="internet_error">Ошибка соединения с сетью</string>
+
+    <!--PLAYER ACTIVITY-->
+    <string name="please_wait_until_content_loads">Надо немного подождать. \n Идёт загрузка</string>
+    <string name="error_check_internet">Произошла ошибка. \n Проверьте соединение с интернетом</string>
+    <string name="try_again">Попробовать снова</string>
+    <string name="text_from_app">Текст из приложения</string>
+    <string name="text_from_link">Текст по ссылке</string>
+
+</resources>
