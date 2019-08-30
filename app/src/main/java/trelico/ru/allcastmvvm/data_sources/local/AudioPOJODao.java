@@ -11,28 +11,39 @@ import androidx.room.Update;
 
 import java.util.List;
 
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
-import trelico.ru.allcastmvvm.repositories.AudioPOJO;
+import io.reactivex.Single;
+import trelico.ru.allcastmvvm.repositories.tts.TTSPOJO;
 
 @Dao
 public interface AudioPOJODao{
 
 
-    @Query("SELECT * FROM AudioPOJO")
-    LiveData<List<AudioPOJO>> getAll();
+    @Query("SELECT * FROM TTSPOJO")
+    Single<List<TTSPOJO>> getAllSingle();
 
-    @Query("SELECT * FROM AudioPOJO WHERE hash = :hash")
-    LiveData<AudioPOJO> getByHash(String hash);
+    @Query("SELECT * FROM TTSPOJO WHERE hash = :hash")
+    Single<TTSPOJO> getByHashSingle(String hash);
 
-    @Query("SELECT * FROM AudioPOJO WHERE linkToSource = :linkToSource")
-    LiveData<AudioPOJO> getByLink(String linkToSource);
+    @Query("SELECT * FROM TTSPOJO WHERE linkToSource = :linkToSource")
+    Single<TTSPOJO> getByLinkSingle(String linkToSource);
+
+    @Query("SELECT * FROM TTSPOJO")
+    Observable<List<TTSPOJO>> getAllObservable();
+
+    @Query("SELECT * FROM TTSPOJO WHERE hash = :hash")
+    Observable<TTSPOJO> getByHashObservable(String hash);
+
+    @Query("SELECT * FROM TTSPOJO WHERE linkToSource = :linkToSource")
+    Observable<TTSPOJO> getByLinkObservable(String linkToSource);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(AudioPOJO audioPOJO);
+    void insert(TTSPOJO TTSPOJO);
 
     @Update
-    void update(AudioPOJO audioPOJO);
+    void update(TTSPOJO TTSPOJO);
 
     @Delete
-    void delete(AudioPOJO audioPOJO);
+    void delete(TTSPOJO TTSPOJO);
 }

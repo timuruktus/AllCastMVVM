@@ -42,7 +42,7 @@ interface YandexRetrofit{
     @FormUrlEncoded
     @Headers({"Content-Type: application/x-www-form-urlencoded","Authorization: Api-Key AQVN1Xr8UfXndfzLL-4xBYOtQ-804TFlPfIhJ0RH"})
     @POST("speech/v1/tts:synthesize")
-    Observable<ResponseBody> getSpeechOgg(@Field("texts") String text, @Field("emotion") String emotion);
+    Observable<ResponseBody> getSpeechOgg(@Field("text") String text, @Field("emotion") String emotion);
 
 
 }

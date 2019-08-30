@@ -22,10 +22,9 @@ import butterknife.OnClick;
 import trelico.ru.allcastmvvm.MyApp;
 import trelico.ru.allcastmvvm.R;
 import trelico.ru.allcastmvvm.data_sources.remote.NetworkService;
-import trelico.ru.allcastmvvm.repositories.AudioPOJO;
-import trelico.ru.allcastmvvm.repositories.AudioRepository;
+import trelico.ru.allcastmvvm.repositories.tts.TTSPOJO;
 
-import static trelico.ru.allcastmvvm.MyApp.D_TAG;
+import static trelico.ru.allcastmvvm.MyApp.I_TAG;
 import static trelico.ru.allcastmvvm.data_sources.remote.NetworkService.RequestState.ERROR_LOCAL;
 import static trelico.ru.allcastmvvm.data_sources.remote.NetworkService.RequestState.ERROR_WEB;
 import static trelico.ru.allcastmvvm.data_sources.remote.NetworkService.RequestState.LOADING;
@@ -60,7 +59,6 @@ public class PlayerActivity extends AppCompatActivity{
     private String content;
     private String linkToSource;
     private String appName;
-    private AudioRepository audioRepository;
     private PlayerViewModel viewModel;
 
     @Override
@@ -72,7 +70,6 @@ public class PlayerActivity extends AppCompatActivity{
         if(contentSource.equals(LINK_CONTENT_SOURCE)) linkToSource = content;
         content = getIntent().getStringExtra(CONTENT);
 //        appName = getIntent().getStringExtra(APP_NAME);
-        audioRepository = AudioRepository.getInstance();
         ViewModelProvider viewModelProvider = new ViewModelProvider(this,
                 new SavedStateViewModelFactory(MyApp.INSTANCE, this));
         viewModel = viewModelProvider.get(PlayerViewModel.class);
@@ -100,7 +97,7 @@ public class PlayerActivity extends AppCompatActivity{
     private void sendRequest(){
         viewModel.sendAudioRequest(content, linkToSource);
         viewModel.getRequestStateLiveData().observe(this, getRequestStateObserver());
-        viewModel.getAudioLiveData().observe(this, getAudioObserver());
+        viewModel.getTtsLiveData().observe(this, getAudioObserver());
     }
 
     private Observer<NetworkService.RequestState> getRequestStateObserver(){
@@ -121,23 +118,18 @@ public class PlayerActivity extends AppCompatActivity{
         };
     }
 
-    private Observer<AudioPOJO> getAudioObserver(){
+    private Observer<TTSPOJO> getAudioObserver(){
         return audioPOJO -> {
-            if(audioPOJO == null) Log.d(D_TAG, "audioPOJO is null in PlayerActivity");
+            if(audioPOJO == null) Log.d(I_TAG, "Initial request. TTSPOJO is null in PlayerActivity");
             else{
                 StringBuilder sb = new StringBuilder();
                 for(String pieceOfText : audioPOJO.getTexts()) sb.append(pieceOfText);
                 String text = sb.toString();
                 mainText.setText(text);
+                //TODO: check if need to download more uris
             }
-            //TODO: launch service and put uris within it
+            //TODO: launch service and put POJO within it
         };
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState){
-
-        super.onSaveInstanceState(outState);
     }
 
     @OnClick(R.id.tryAgainButton)
