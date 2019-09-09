@@ -14,7 +14,7 @@ public class MyApp extends Application{
     public static final String I_TAG = "Info tag";
     public static final String E_TAG = "Error tag";
     public static MyApp INSTANCE;
-    private static AppDatabase appDatabase;
+    private AppDatabase appDatabase;
     private static ConnectionMonitor connectionMonitor;
 
     @Override
@@ -31,7 +31,7 @@ public class MyApp extends Application{
         return connectionMonitor;
     }
 
-    public static AppDatabase getAppDatabase(){
+    public AppDatabase getAppDatabase(){
         return appDatabase;
     }
 }

@@ -86,7 +86,10 @@ public class PlayerViewModel extends ViewModel{
 
     LiveData<String> parseContentIfNeeded(String content, String contentSource){
         MutableLiveData<String> parsedContent = new MutableLiveData<>();
-        if(contentSource.equals(APP_CONTENT_SOURCE)) parsedContent.setValue(content); //Cause content - already parsed texts
+        if(contentSource != null && !contentSource.isEmpty() && contentSource.equals(APP_CONTENT_SOURCE))
+            parsedContent.setValue(content); //Cause content - already parsed texts
+        else if((contentSource == null || contentSource.isEmpty()) && content.startsWith("http"))
+            linkParser.stub();
         else return linkParser.stub(); //TODO: remove stub
         return parsedContent;
     }

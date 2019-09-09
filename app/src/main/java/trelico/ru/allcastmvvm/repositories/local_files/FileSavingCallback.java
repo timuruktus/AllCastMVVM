@@ -1,4 +1,4 @@
-package trelico.ru.allcastmvvm.data_sources.local;
+package trelico.ru.allcastmvvm.repositories.local_files;
 
 public interface FileSavingCallback{
 

@@ -1,6 +1,5 @@
 package trelico.ru.allcastmvvm.repositories.tts;
 
-import android.annotation.SuppressLint;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -13,21 +12,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.BehaviorSubject;
-import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
 import okhttp3.ResponseBody;
 import trelico.ru.allcastmvvm.MyApp;
 import trelico.ru.allcastmvvm.data_sources.local.AppDatabase;
 import trelico.ru.allcastmvvm.data_sources.local.AudioPOJODao;
-import trelico.ru.allcastmvvm.data_sources.local.FileSavingCallback;
-import trelico.ru.allcastmvvm.data_sources.local.FileStorage;
+import trelico.ru.allcastmvvm.repositories.local_files.FileStorage;
 import trelico.ru.allcastmvvm.data_sources.remote.AudioRequestBody;
 import trelico.ru.allcastmvvm.data_sources.remote.AudioWebAPI;
 import trelico.ru.allcastmvvm.data_sources.remote.NetworkService.RequestState;
@@ -36,7 +30,6 @@ import trelico.ru.allcastmvvm.utils.ConnectionMonitor;
 import trelico.ru.allcastmvvm.utils.HashUtils;
 
 import static trelico.ru.allcastmvvm.MyApp.D_TAG;
-import static trelico.ru.allcastmvvm.MyApp.E_TAG;
 import static trelico.ru.allcastmvvm.MyApp.I_TAG;
 import static trelico.ru.allcastmvvm.data_sources.remote.NetworkService.DEFAULT_EMOTION;
 import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.APP_CONTENT_SOURCE;
@@ -56,7 +49,7 @@ public class TTSRepositoryImpl implements TTSRepository{
 
     private TTSRepositoryImpl(){
         audioWebAPI = AudioWebAPI.getInstance();
-        AppDatabase appDatabase = MyApp.getAppDatabase();
+        AppDatabase appDatabase = MyApp.INSTANCE.getAppDatabase();
         audioPOJODao = appDatabase.audioPOJODao();
         fileStorage = new FileStorage();
         connectionMonitor = MyApp.getConnectionMonitor();
@@ -112,29 +105,30 @@ public class TTSRepositoryImpl implements TTSRepository{
         ttspojo.setLinkToSource(linkToSource);
         if(linkToSource != null && !linkToSource.isEmpty()) ttspojo.setContentSource(LINK_CONTENT_SOURCE);
         else ttspojo.setContentSource(APP_CONTENT_SOURCE);
-        splitTextByLengthLimitRx(text, DEFAULT_TEXT_LENGTH_LIMIT)
-                .flatMap(splittedText -> {
+        Observable.fromIterable(splitTextByLengthLimit(text, DEFAULT_TEXT_LENGTH_LIMIT))
+                .map(splittedText -> {
                     Log.d(D_TAG, "Step one in repo");
                     ttspojo.getTexts().add(splittedText);
-                    return audioWebAPI
-                            .getTTSRawAudioString(new AudioRequestBody(splittedText), DEFAULT_EMOTION);
+                    return audioWebAPI.getTTSRawAudioString(new AudioRequestBody(splittedText), DEFAULT_EMOTION);
                 })
-                .flatMap(responseBody ->{
+                .map(responseBody -> {
                     Log.d(D_TAG, "Step two in repo");
                     String fileUri = AndroidUtils.getAudioFilesDir() + File.separator + hash;
                     return saveTTS(responseBody, fileUri);
                 })
-                .flatMap(uri -> {
+                .map(uri -> {
                     Log.d(D_TAG, "Step three in repo");
                     ttspojo.getUris().add(uri);
-                    return null;
+                    audioPOJODao.insert(ttspojo);
+                    return new Object();
                 })
                 .subscribeOn(Schedulers.io())
+                .retry(10)
                 .subscribe(new Observer<Object>(){
                     @Override
                     public void onSubscribe(Disposable d){
                         Log.d(D_TAG, "onSubscribe in repo");
-                        requestStateLiveData.postValue(RequestState.LOADING);
+//                        requestStateLiveData.postValue(RequestState.LOADING);
                     }
 
                     @Override
@@ -146,6 +140,7 @@ public class TTSRepositoryImpl implements TTSRepository{
                     @Override
                     public void onError(Throwable e){
                         Log.d(D_TAG, "onError in repo");
+                        e.printStackTrace();
                         if(e instanceof IOException) requestStateLiveData.postValue(RequestState.ERROR_LOCAL);
                         else requestStateLiveData.postValue(RequestState.ERROR_WEB);
                         if(!ttspojo.getUris().isEmpty() && !ttspojo.getTexts().isEmpty())
@@ -168,33 +163,31 @@ public class TTSRepositoryImpl implements TTSRepository{
      * @param ttspojo - POJO to save
      * @return observable that shows that update is completed
      */
-    private Observable<Boolean> updateTTSPOJO(String uri, TTSPOJO ttspojo){
-        PublishSubject<Boolean> completedObservable = PublishSubject.create();
+    private boolean updateTTSPOJO(String uri, TTSPOJO ttspojo){
         ttspojo.getUris().add(uri);
         audioPOJODao.update(ttspojo);
-        completedObservable.onNext(true);
-        return completedObservable;
+        return true;
     }
 
-    /**
-     *  This method should not be called from main thread
-     * @param responseBodies - array of bodies to save (must be an audio file)
-     * @param fileNames - names of the saved files
-     * @return observable that emit single uri string with path to saved audio file
-     */
-    private Observable<String> saveManyTTS(ArrayList<ResponseBody> responseBodies,
-                                           ArrayList<String> fileNames){
-        PublishSubject<String> uriObservable = PublishSubject.create();
-        for(int i = 0; i < fileNames.size(); i++){
-            String fileName = fileNames.get(i);
-            ResponseBody responseBody = responseBodies.get(i);
-            fileStorage.saveAudioFile(responseBody, fileName, isSuccessful -> {
-                if(isSuccessful) uriObservable.onNext(fileName);
-                if(!isSuccessful) uriObservable.onError(new IOException());
-            });
-        }
-        return uriObservable;
-    }
+//    /**
+//     *  This method should not be called from main thread
+//     * @param responseBodies - array of bodies to save (must be an audio file)
+//     * @param fileNames - names of the saved files
+//     * @return observable that emit single uri string with path to saved audio file
+//     */
+//    private Observable<String> saveManyTTS(ArrayList<ResponseBody> responseBodies,
+//                                           ArrayList<String> fileNames){
+//        PublishSubject<String> uriObservable = PublishSubject.create();
+//        for(int i = 0; i < fileNames.size(); i++){
+//            String fileName = fileNames.get(i);
+//            ResponseBody responseBody = responseBodies.get(i);
+//            fileStorage.saveAudioFile(responseBody, fileName, isSuccessful -> {
+//                if(isSuccessful) uriObservable.onNext(fileName);
+//                if(!isSuccessful) uriObservable.onError(new IOException());
+//            });
+//        }
+//        return uriObservable;
+//    }
 
     /**
      *  This method should not be called from main thread
@@ -202,22 +195,11 @@ public class TTSRepositoryImpl implements TTSRepository{
      * @param fileName - name of the saved file
      * @return observable that emit single uri string with path to saved audio file
      */
-    private ObservableSource<String> saveTTS(ResponseBody responseBody,
-                                       String fileName){
-        Log.d(D_TAG, "saveTTS in repo. Step 1");
-        PublishSubject<String> uriObservable = PublishSubject.create();
-        Log.d(D_TAG, "saveTTS in repo. Step 2");
-        fileStorage.saveAudioFile(responseBody, fileName, isSuccessful -> {
-                if(isSuccessful){
-                    uriObservable.onNext(fileName);
-                    Log.d(D_TAG, "saveTTS in repo. Step 3");
-                }
-                if(!isSuccessful){
-                    uriObservable.onError(new IOException());
-                    Log.d(D_TAG, "saveTTS in repo. Step 4");
-                }
-        });
-        return uriObservable;
+    private String saveTTS(ResponseBody responseBody,
+                                       String fileName) throws IOException{
+        boolean isSuccessful = fileStorage.saveAudioFile(responseBody, fileName);
+        if(isSuccessful) return fileName;
+        else throw new IOException();
     }
 
     private Observable<String> splitTextByLengthLimitRx(String text, int textLengthLimit){

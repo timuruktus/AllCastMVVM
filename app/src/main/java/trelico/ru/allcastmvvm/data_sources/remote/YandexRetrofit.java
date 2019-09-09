@@ -2,6 +2,7 @@ package trelico.ru.allcastmvvm.data_sources.remote;
 
 import io.reactivex.Observable;
 import okhttp3.ResponseBody;
+import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -42,7 +43,13 @@ interface YandexRetrofit{
     @FormUrlEncoded
     @Headers({"Content-Type: application/x-www-form-urlencoded","Authorization: Api-Key AQVN1Xr8UfXndfzLL-4xBYOtQ-804TFlPfIhJ0RH"})
     @POST("speech/v1/tts:synthesize")
-    Observable<ResponseBody> getSpeechOgg(@Field("text") String text, @Field("emotion") String emotion);
+    Observable<ResponseBody> getSpeechOggAsync(@Field("text") String text, @Field("emotion") String emotion);
+
+    @Streaming
+    @FormUrlEncoded
+    @Headers({"Content-Type: application/x-www-form-urlencoded","Authorization: Api-Key AQVN1Xr8UfXndfzLL-4xBYOtQ-804TFlPfIhJ0RH"})
+    @POST("speech/v1/tts:synthesize")
+    Call<ResponseBody> getSpeechOgg(@Field("text") String text, @Field("emotion") String emotion);
 
 
 }

@@ -2,6 +2,8 @@ package trelico.ru.allcastmvvm.data_sources.remote;
 
 import android.util.Log;
 
+import java.io.IOException;
+
 import io.reactivex.Observable;
 import okhttp3.ResponseBody;
 
@@ -26,8 +28,13 @@ public class AudioWebAPI{
         return audioWebApi;
     }
 
-    public Observable<ResponseBody> getTTSRawAudioString(AudioRequestBody body, String emotion){
+    public Observable<ResponseBody> getTTSRawAudioStringAsync(AudioRequestBody body, String emotion){
+        Log.d(D_TAG, "getTTSRawAudioStringAsync in AudioWebAPI");
+        return yandexRetrofit.getSpeechOggAsync(body.getText(), emotion);
+    }
+
+    public ResponseBody getTTSRawAudioString(AudioRequestBody body, String emotion) throws IOException{
         Log.d(D_TAG, "getTTSRawAudioString in AudioWebAPI");
-        return yandexRetrofit.getSpeechOgg(body.getText(), emotion);
+        return yandexRetrofit.getSpeechOgg(body.getText(), emotion).execute().body();
     }
 }
