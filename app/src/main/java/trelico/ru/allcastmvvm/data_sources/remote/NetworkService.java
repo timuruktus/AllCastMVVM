@@ -18,7 +18,7 @@ public class NetworkService{
     public static final String GOOD_EMOTION = "good";
     public static final String EVIT_EMOTION = "evil";
     public static final String NEUTRAL_EMOTION = "neutral";
-    public static final String DEFAULT_EMOTION = NEUTRAL_EMOTION;
+    public static final String DEFAULT_EMOTION = GOOD_EMOTION;
 
     private NetworkService() {
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();

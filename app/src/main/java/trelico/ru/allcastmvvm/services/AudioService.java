@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaControllerCompat.TransportControls;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
@@ -64,6 +65,7 @@ import static android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_STOPPED;
+import static com.google.android.exoplayer2.Player.STATE_ENDED;
 import static com.google.android.exoplayer2.Timeline.*;
 import static trelico.ru.allcastmvvm.MyApp.D_TAG;
 import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.TEXT;
@@ -106,14 +108,15 @@ public class AudioService extends MediaBrowserServiceCompat{
     public void onCreate(){
         super.onCreate();
         configureMediaSession();
+
         application = (MyApp) getApplicationContext();
         dataSourceFactory = new DefaultDataSourceFactory(getApplicationContext(),
                 Util.getUserAgent(this, getString(R.string.app_name)));
         appDatabase = application.getAppDatabase();
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         stateDisposable = audioHelper.getRequestStateObservable().subscribe(requestStateConsumer);
-        configureNotificationChannel();
         configureExoPlayer();
+        configureNotificationChannel();
     }
 
     private void configureExoPlayer(){
@@ -123,7 +126,18 @@ public class AudioService extends MediaBrowserServiceCompat{
                 new DefaultLoadControl());
         exoPlayer.setPlayWhenReady(false);
         exoPlayer.setRepeatMode(Player.REPEAT_MODE_OFF);
-        exoPlayer.prepare(playlistMediaSource);
+        exoPlayer.addListener(new Player.EventListener(){
+            @Override
+            public void onPlayerStateChanged(boolean playWhenReady, int playbackState){
+                if(playbackState == STATE_ENDED){
+                    Log.d(D_TAG, "playback state ended");
+                    TransportControls transportControls = mediaSession.getController().getTransportControls();
+                    exoPlayer.setPlayWhenReady(false);
+                    transportControls.seekTo(0);
+                    transportControls.pause();
+                }
+            }
+        });
 
     }
 
@@ -257,7 +271,8 @@ public class AudioService extends MediaBrowserServiceCompat{
         @Override
         public void onPause(){
             super.onPause();
-            progressDisposable.dispose();
+            if(progressDisposable != null && !progressDisposable.isDisposed())
+                progressDisposable.dispose();
             Log.d(D_TAG, "onPause in service");
             if(exoPlayer.getPlayWhenReady()){
                 exoPlayer.setPlayWhenReady(false);
@@ -379,7 +394,8 @@ public class AudioService extends MediaBrowserServiceCompat{
             case AUDIOFOCUS_GAIN:
                 Log.d(D_TAG, "audiofocus gained in AudioService");
                 exoPlayer.setVolume(1f); //MAY BE A BUG
-                mediaSessionCallback.onPlay(); // Не очень красиво (вызов метода колбэка)
+                mediaSession.getController().getTransportControls().play();
+//                mediaSessionCallback.onPlay(); // Не очень красиво (вызов метода колбэка)
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
 //                mediaSessionCallback.onPause();
