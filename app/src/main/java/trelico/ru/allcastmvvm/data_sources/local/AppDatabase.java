@@ -6,7 +6,7 @@ import androidx.room.TypeConverters;
 
 import trelico.ru.allcastmvvm.repositories.tts.TTSPOJO;
 
-@Database(entities = {TTSPOJO.class}, version = 3, exportSchema = false)
+@Database(entities = {TTSPOJO.class}, version = 4, exportSchema = false)
 @TypeConverters({trelico.ru.allcastmvvm.utils.TypeConverters.class})
 public abstract class AppDatabase extends RoomDatabase{
     public abstract AudioPOJODao audioPOJODao();

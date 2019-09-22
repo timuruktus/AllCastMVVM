@@ -10,9 +10,9 @@ import trelico.ru.allcastmvvm.utils.ConnectionMonitor;
 
 public class MyApp extends Application{
 
-    public static final String D_TAG = "Debug tag";
-    public static final String I_TAG = "Info tag";
-    public static final String E_TAG = "Error tag";
+    public static final String D_TAG = "Debugtag";
+    public static final String I_TAG = "Infotag";
+    public static final String E_TAG = "Errortag";
     public static MyApp INSTANCE;
     private AppDatabase appDatabase;
     private static ConnectionMonitor connectionMonitor;

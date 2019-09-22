@@ -17,7 +17,6 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import butterknife.BindString;
@@ -29,11 +28,8 @@ import trelico.ru.allcastmvvm.R;
 import trelico.ru.allcastmvvm.screens.player.PlayerActivity;
 import trelico.ru.allcastmvvm.utils.AndroidUtils;
 
-import static android.content.ClipDescription.MIMETYPE_TEXT_PLAIN;
 import static trelico.ru.allcastmvvm.MyApp.D_TAG;
-import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.APP_CONTENT_SOURCE;
-import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.CONTENT;
-import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.CONTENT_SOURCE;
+import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.TEXT;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -105,9 +101,10 @@ public class ChooseFragment extends Fragment{
             ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
             String copiedText = item.getText().toString();
             try{
-                if(copiedText != null && !copiedText.isEmpty()){
+                if(!copiedText.isEmpty()){
                     clipboard.removePrimaryClipChangedListener(clipboardListener);
-                    launchPlayerActivity(copiedText, APP_CONTENT_SOURCE);
+                    Log.d(D_TAG, "getListener in ChooseFragment. Text size = " + copiedText.length());
+                    launchPlayerActivity(TEXT, copiedText);
                     AndroidUtils.bringActivityToForeground(getContext(), PlayerActivity.class);
                 }
             } catch(NullPointerException ex){
@@ -125,12 +122,11 @@ public class ChooseFragment extends Fragment{
 
     /**
      * @param content - content. Link or raw copied texts.
-     * @param tag     - APP_CONTENT_SOURCE or LINK_CONTENT_SOURCE in PlayerActivity.
+     * @param tag     - TEXT or LINK_TO_SOURCE in PlayerActivity.
      */
-    private void launchPlayerActivity(String content, String tag){
+    private void launchPlayerActivity(String tag, String content){
         Intent intent = new Intent(getContext(), PlayerActivity.class);
-        intent.putExtra(CONTENT_SOURCE, tag);
-        intent.putExtra(CONTENT, content);
+        intent.putExtra(tag, content);
         startActivity(intent);
     }
 
@@ -142,7 +138,7 @@ public class ChooseFragment extends Fragment{
             appIntent.setData(Uri.parse("https://t.me"));//TODO
             startActivity(appIntent);
         } else{
-            Toast.makeText(getContext(), "App is not Installed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), R.string.app_is_not_installed, Toast.LENGTH_SHORT).show();
         }
     }
 

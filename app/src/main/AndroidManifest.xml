@@ -16,7 +16,8 @@
         android:name=".MyApp"
         tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".screens.player.PlayerActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".screens.main.MainActivity"></activity>
         <activity android:name=".screens.main.MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>

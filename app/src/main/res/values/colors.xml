@@ -7,6 +7,7 @@
     <color name="secondaryText">#80010101</color>
     <color name="brightText">#80FFFFFF</color>
     <color name="lightText">#E2FFFFFF</color>
+    <color name="notificationBackgroundColor">#E2FFFFFF</color>
 
     <!--APPLICATIONS-->
     <color name="telegram">#0088CC</color>

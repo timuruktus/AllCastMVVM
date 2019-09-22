@@ -30,4 +30,8 @@ public class AndroidUtils{
     public static String getAudioFilesDir(){
         return MyApp.INSTANCE.getFilesDir().getAbsolutePath();
     }
+
+    public static long getCurrentSystemTime(){
+        return System.currentTimeMillis();
+    }
 }

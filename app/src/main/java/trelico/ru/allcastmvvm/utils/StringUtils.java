@@ -7,7 +7,7 @@ import java.security.NoSuchAlgorithmException;
 
 import static trelico.ru.allcastmvvm.MyApp.I_TAG;
 
-public class HashUtils{
+public class StringUtils{
 
     private static MessageDigest messageDigest;
 

@@ -15,10 +15,10 @@ public class NetworkService{
     private static NetworkService instance;
     private static final String YANDEX_TTS_URL = "https://tts.api.cloud.yandex.net/";
     private Retrofit yandexService;
-    public static final String DEFAULT_EMOTION = "good";
     public static final String GOOD_EMOTION = "good";
     public static final String EVIT_EMOTION = "evil";
     public static final String NEUTRAL_EMOTION = "neutral";
+    public static final String DEFAULT_EMOTION = NEUTRAL_EMOTION;
 
     private NetworkService() {
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
@@ -53,7 +53,15 @@ public class NetworkService{
     }
 
 
-    public enum RequestState{
-        LOADING, SUCCESS, ERROR_WEB, ERROR_LOCAL, IN_PROGRESS
+//    public enum RequestState{
+//        LOADING, SUCCESS, ERROR_WEB, ERROR_LOCAL, IN_PROGRESS
+//    }
+
+    public class RequestState{
+        public static final int LOADING = 1;
+        public static final int SUCCESS = 2;
+        public static final int ERROR_WEB = 3;
+        public static final int ERROR_LOCAL = 4;
+        public static final int IN_PROGRESS = 5;
     }
 }

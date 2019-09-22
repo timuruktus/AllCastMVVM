@@ -4,7 +4,6 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.MutableLiveData;
 import androidx.room.EmptyResultSetException;
 
 import java.io.File;
@@ -16,24 +15,22 @@ import io.reactivex.Observer;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
 import okhttp3.ResponseBody;
 import trelico.ru.allcastmvvm.MyApp;
 import trelico.ru.allcastmvvm.data_sources.local.AppDatabase;
 import trelico.ru.allcastmvvm.data_sources.local.AudioPOJODao;
-import trelico.ru.allcastmvvm.repositories.local_files.FileStorage;
 import trelico.ru.allcastmvvm.data_sources.remote.AudioRequestBody;
 import trelico.ru.allcastmvvm.data_sources.remote.AudioWebAPI;
 import trelico.ru.allcastmvvm.data_sources.remote.NetworkService.RequestState;
+import trelico.ru.allcastmvvm.repositories.local_files.FileStorage;
 import trelico.ru.allcastmvvm.utils.AndroidUtils;
-import trelico.ru.allcastmvvm.utils.ConnectionMonitor;
-import trelico.ru.allcastmvvm.utils.HashUtils;
+import trelico.ru.allcastmvvm.utils.StringUtils;
 
 import static trelico.ru.allcastmvvm.MyApp.D_TAG;
 import static trelico.ru.allcastmvvm.MyApp.I_TAG;
 import static trelico.ru.allcastmvvm.data_sources.remote.NetworkService.DEFAULT_EMOTION;
-import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.APP_CONTENT_SOURCE;
-import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.LINK_CONTENT_SOURCE;
 
 public class TTSRepositoryImpl implements TTSRepository{
 
@@ -41,9 +38,8 @@ public class TTSRepositoryImpl implements TTSRepository{
     private AudioWebAPI audioWebAPI;
     private AudioPOJODao audioPOJODao;
     private FileStorage fileStorage;
-    private ConnectionMonitor connectionMonitor;
-    private MutableLiveData<RequestState> requestStateLiveData = new MutableLiveData<>();
-    private TTSResponseContainer ttsResponseContainer = new TTSResponseContainer(requestStateLiveData);
+    private PublishSubject<Integer> requestStateSubject = PublishSubject.create();
+    private TTSResponseContainer ttsResponseContainer = new TTSResponseContainer(requestStateSubject);
     private static final int DEFAULT_TEXT_LENGTH_LIMIT = 1000;
     private static final int MAX_TEXT_LENGTH_LIMIT = 5000;
 
@@ -52,7 +48,6 @@ public class TTSRepositoryImpl implements TTSRepository{
         AppDatabase appDatabase = MyApp.INSTANCE.getAppDatabase();
         audioPOJODao = appDatabase.audioPOJODao();
         fileStorage = new FileStorage();
-        connectionMonitor = MyApp.getConnectionMonitor();
     }
 
     public static TTSRepositoryImpl getInstance(){
@@ -62,25 +57,26 @@ public class TTSRepositoryImpl implements TTSRepository{
 
     @Override
     public void createTTS(@NonNull String text, @Nullable String linkToSource){
-        String hash = HashUtils.getHash(text);
+        String hash = StringUtils.getHash(text);
+        Log.d(D_TAG, "createTTS in Repo. hash = " + hash);
         audioPOJODao.getByHashSingle(hash)
                 .subscribeOn(Schedulers.io())
                 .subscribe(new SingleObserver<TTSPOJO>(){
                     @Override
                     public void onSubscribe(Disposable d){
-                        requestStateLiveData.postValue(RequestState.LOADING);
+                        requestStateSubject.onNext(RequestState.LOADING);
                     }
 
                     @Override
                     public void onSuccess(TTSPOJO ttspojo){
-                        requestStateLiveData.postValue(RequestState.SUCCESS);
+                        requestStateSubject.onNext(RequestState.SUCCESS);
                     }
 
                     @Override
                     public void onError(Throwable e){
                         if(e instanceof EmptyResultSetException){
-                            Log.i(I_TAG, "There is no such audioPOJO in DB");
-                            sendWebCreateRequest(text, linkToSource);
+                            Log.i(I_TAG, "No such audio POJO found in DB");
+                            sendWebCreateRequest(text, linkToSource, hash);
                         }
                     }
                 });
@@ -98,51 +94,50 @@ public class TTSRepositoryImpl implements TTSRepository{
     }
 
 
-    private void sendWebCreateRequest(@NonNull String text, @Nullable String linkToSource){
-        String hash = HashUtils.getHash(text);
+    private void sendWebCreateRequest(@NonNull String text, @Nullable String linkToSource,
+                                      @NonNull String hash){
+        Log.d(D_TAG, "sendWebCreateRequest in Repo. hash = " + hash);
         TTSPOJO ttspojo = new TTSPOJO();
         ttspojo.setHash(hash);
         ttspojo.setLinkToSource(linkToSource);
-        if(linkToSource != null && !linkToSource.isEmpty()) ttspojo.setContentSource(LINK_CONTENT_SOURCE);
-        else ttspojo.setContentSource(APP_CONTENT_SOURCE);
-        Observable.fromIterable(splitTextByLengthLimit(text, DEFAULT_TEXT_LENGTH_LIMIT))
+        Observable.fromIterable(splitTextIntoPieces(text, DEFAULT_TEXT_LENGTH_LIMIT))
                 .map(splittedText -> {
-                    Log.d(D_TAG, "Step one in repo");
+                    Log.d(D_TAG, "Send web request and add to arraylist in repo");
                     ttspojo.getTexts().add(splittedText);
                     return audioWebAPI.getTTSRawAudioString(new AudioRequestBody(splittedText), DEFAULT_EMOTION);
                 })
                 .map(responseBody -> {
-                    Log.d(D_TAG, "Step two in repo");
-                    String fileUri = AndroidUtils.getAudioFilesDir() + File.separator + hash;
+                    Log.d(D_TAG, "Save file in repo");
+                    String fileUri = AndroidUtils.getAudioFilesDir() + File.separator + hash
+                            + AndroidUtils.getCurrentSystemTime();
                     return saveTTS(responseBody, fileUri);
                 })
                 .map(uri -> {
-                    Log.d(D_TAG, "Step three in repo");
+                    Log.d(D_TAG, "uri in TTSRepoImpl = " + uri);
+                    Log.d(D_TAG, "Save POJO in DB in repo");
                     ttspojo.getUris().add(uri);
                     audioPOJODao.insert(ttspojo);
                     return new Object();
                 })
                 .subscribeOn(Schedulers.io())
-                .retry(10)
                 .subscribe(new Observer<Object>(){
                     @Override
                     public void onSubscribe(Disposable d){
-                        Log.d(D_TAG, "onSubscribe in repo");
-//                        requestStateLiveData.postValue(RequestState.LOADING);
                     }
 
                     @Override
                     public void onNext(Object o){
                         Log.d(D_TAG, "onNext in repo");
-                        requestStateLiveData.postValue(RequestState.IN_PROGRESS);
+                        requestStateSubject.onNext(RequestState.IN_PROGRESS);
                     }
 
                     @Override
                     public void onError(Throwable e){
                         Log.d(D_TAG, "onError in repo");
                         e.printStackTrace();
-                        if(e instanceof IOException) requestStateLiveData.postValue(RequestState.ERROR_LOCAL);
-                        else requestStateLiveData.postValue(RequestState.ERROR_WEB);
+                        if(e instanceof IOException)
+                            requestStateSubject.onNext(RequestState.ERROR_LOCAL);
+                        else requestStateSubject.onNext(RequestState.ERROR_WEB);
                         if(!ttspojo.getUris().isEmpty() && !ttspojo.getTexts().isEmpty())
                             audioPOJODao.insert(ttspojo);
 
@@ -151,15 +146,14 @@ public class TTSRepositoryImpl implements TTSRepository{
                     @Override
                     public void onComplete(){
                         Log.d(D_TAG, "onComplete in repo");
-                        requestStateLiveData.postValue(RequestState.SUCCESS);
                         audioPOJODao.insert(ttspojo);
+                        requestStateSubject.onNext(RequestState.SUCCESS);
                     }
                 });
     }
 
     /**
-     *
-     * @param uri - uri to add to POJO's arrayList
+     * @param uri     - uri to add to POJO's arrayList
      * @param ttspojo - POJO to save
      * @return observable that shows that update is completed
      */
@@ -190,13 +184,14 @@ public class TTSRepositoryImpl implements TTSRepository{
 //    }
 
     /**
-     *  This method should not be called from main thread
+     * This method should not be called from main thread
+     *
      * @param responseBody - body to save (must be an audio file)
-     * @param fileName - name of the saved file
+     * @param fileName     - name of the saved file
      * @return observable that emit single uri string with path to saved audio file
      */
     private String saveTTS(ResponseBody responseBody,
-                                       String fileName) throws IOException{
+                           String fileName) throws IOException{
         boolean isSuccessful = fileStorage.saveAudioFile(responseBody, fileName);
         if(isSuccessful) return fileName;
         else throw new IOException();
@@ -210,12 +205,31 @@ public class TTSRepositoryImpl implements TTSRepository{
         return texts;
     }
 
-    private ArrayList<String> splitTextByLengthLimit(String text, int textLengthLimit){
+
+    private ArrayList<String> splitTextIntoPieces(String text, int textLengthLimit){
         ArrayList<String> textsSplitByCharLimit = new ArrayList<>();
-        for(int i = 0; i < text.length(); i += textLengthLimit){
-            textsSplitByCharLimit.add(text.substring(i, Math.min(i + textLengthLimit, text.length())));
+        for(int i = 0; i < text.length(); i += getAddition(textLengthLimit, textsSplitByCharLimit.size())){
+            textsSplitByCharLimit.add(
+                    text.substring(
+                            i, Math.min(
+                                    i + getAddition(textLengthLimit, textsSplitByCharLimit.size()),
+                                    text.length())));
         }
         return textsSplitByCharLimit;
 
+    }
+
+    /**
+     *
+     * @param textLengthLimit - initial text length limit
+     * @param arraySize - size of already parsed pieces of text
+     * @return calculated addition which is arithmetic progression with step = 250
+     * or MAX_TEXT_LENGTH_LIMIT - 1 if calculated addition was over it
+     */
+    private int getAddition(int textLengthLimit, int arraySize){
+        int addition = 250;
+        int calculatedAddition = textLengthLimit + arraySize * addition;
+        if(calculatedAddition < MAX_TEXT_LENGTH_LIMIT) return calculatedAddition;
+        else return MAX_TEXT_LENGTH_LIMIT - 1;
     }
 }

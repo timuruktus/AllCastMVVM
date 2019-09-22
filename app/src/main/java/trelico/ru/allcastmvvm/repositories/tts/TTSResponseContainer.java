@@ -6,19 +6,20 @@ import androidx.lifecycle.MutableLiveData;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
-
-import static trelico.ru.allcastmvvm.data_sources.remote.NetworkService.*;
+import io.reactivex.subjects.PublishSubject;
+import trelico.ru.allcastmvvm.data_sources.remote.NetworkService;
+import trelico.ru.allcastmvvm.data_sources.remote.NetworkService.RequestState;
 
 public class TTSResponseContainer{
 
-    private MutableLiveData<RequestState> requestState;
+    private PublishSubject<Integer> requestState;
     private Observable<TTSPOJO> response = Observable.empty();
 
-    public TTSResponseContainer(MutableLiveData<RequestState> requestState){
+    public TTSResponseContainer(PublishSubject<Integer> requestState){
         this.requestState = requestState;
     }
 
-    public TTSResponseContainer(MutableLiveData<RequestState> requestState, Observable<TTSPOJO> response){
+    public TTSResponseContainer(PublishSubject<Integer> requestState, Observable<TTSPOJO> response){
         this.requestState = requestState;
         this.response = response;
     }
@@ -26,11 +27,11 @@ public class TTSResponseContainer{
     public TTSResponseContainer(){
     }
 
-    public LiveData<RequestState> getRequestStateLiveData(){
+    public Observable<Integer> getRequestStateObservable(){
         return requestState;
     }
 
-    public void setRequestStateLiveData(MutableLiveData<RequestState> requestState){
+    public void setRequestStateLiveData(PublishSubject<Integer> requestState){
         this.requestState = requestState;
     }
 
@@ -40,5 +41,9 @@ public class TTSResponseContainer{
 
     public void setResponseObservable(Observable<TTSPOJO> response){
         this.response = response;
+    }
+
+    public void clear(){
+        response = null;
     }
 }
