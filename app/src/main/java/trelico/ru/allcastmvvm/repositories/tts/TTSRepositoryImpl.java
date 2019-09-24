@@ -208,7 +208,7 @@ public class TTSRepositoryImpl implements TTSRepository{
 
     private ArrayList<String> splitTextIntoPieces(String text, int textLengthLimit){
         ArrayList<String> textsSplitByCharLimit = new ArrayList<>();
-        for(int i = 0; i < text.length(); i += getAddition(textLengthLimit, textsSplitByCharLimit.size())){
+        for(int i = 0; i < text.length(); i += getAddition(textLengthLimit, textsSplitByCharLimit.size() - 1)){
             textsSplitByCharLimit.add(
                     text.substring(
                             i, Math.min(
@@ -216,11 +216,9 @@ public class TTSRepositoryImpl implements TTSRepository{
                                     text.length())));
         }
         return textsSplitByCharLimit;
-
     }
 
     /**
-     *
      * @param textLengthLimit - initial text length limit
      * @param arraySize - size of already parsed pieces of text
      * @return calculated addition which is arithmetic progression with step = 250
