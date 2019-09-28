@@ -433,6 +433,7 @@ public class AudioService extends MediaBrowserServiceCompat{
         long duration = 0;
         exoPlayer.getCurrentPosition();
         Timeline timeline = exoPlayer.getCurrentTimeline();
+        Log.d(D_TAG, "Windows count in Service = " + timeline.getWindowCount());
         for(int i = 0; i < timeline.getWindowCount(); i++){
             duration += timeline.getWindow(i, new Window()).getDurationMs();
         }

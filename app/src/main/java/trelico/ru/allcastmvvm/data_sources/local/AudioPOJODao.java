@@ -1,7 +1,6 @@
 package trelico.ru.allcastmvvm.data_sources.local;
 
 
-import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -11,7 +10,6 @@ import androidx.room.Update;
 
 import java.util.List;
 
-import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import trelico.ru.allcastmvvm.repositories.tts.TTSPOJO;

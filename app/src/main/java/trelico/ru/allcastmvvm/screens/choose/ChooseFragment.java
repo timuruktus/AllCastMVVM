@@ -7,13 +7,16 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Outline;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
@@ -37,10 +40,8 @@ import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.TEXT;
 public class ChooseFragment extends Fragment{
 
 
-    @BindView(R.id.telegram)
-    Button telegram;
-    @BindString(R.string.telegram_hint)
-    String telegramHint;
+    @BindView(R.id.telegramViewBackground) ImageView telegramViewBackground;
+    @BindView(R.id.telegramTryButton) Button telegramTryButton;
     @BindString(R.string.understand)
     String understand;
     @BindString(R.string.error_happened)
@@ -61,30 +62,28 @@ public class ChooseFragment extends Fragment{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
-
         view = inflater.inflate(R.layout.fragment_choose, container, false);
         ViewModelProvider viewModelProvider = new ViewModelProvider(this);
         viewModel = viewModelProvider.get(ChooseViewModel.class);
         ButterKnife.bind(this, view);
+        telegramViewBackground.setOutlineProvider(tryButtonOutlineProvider);
         return view;
     }
 
-    @OnClick(R.id.telegram)
-    public void onTelegramClicked(){
-        AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setMessage(telegramHint)
-                .setCancelable(true)
-                .setPositiveButton(understand, getHintDialogListener())
-                .create();
-        dialog.show();
-    }
+    ViewOutlineProvider tryButtonOutlineProvider = new ViewOutlineProvider(){
+        @Override
+        public void getOutline(View view, Outline outline){
+            // Or read size directly from the view's width/height
+            int size = getResources().getDimensionPixelSize(R.dimen.telegramIconBackgroundSize);
+            outline.setOval(0, 0, size, size);
+        }
+    };
 
 
-    private DialogInterface.OnClickListener getHintDialogListener(){
-        return (dialog, which) -> {
-            setClipboardListener();
-            launchTelegram();
-        };
+    @OnClick(R.id.telegramTryButton)
+    public void onViewClicked(){
+        setClipboardListener();
+        launchTelegram();
     }
 
     private void setClipboardListener(){

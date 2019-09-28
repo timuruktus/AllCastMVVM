@@ -3,7 +3,9 @@ package trelico.ru.allcastmvvm.utils;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.MediaMetadataRetriever;
 
+import butterknife.internal.Utils;
 import trelico.ru.allcastmvvm.MyApp;
 
 import static android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT;
@@ -33,5 +35,12 @@ public class AndroidUtils{
 
     public static long getCurrentSystemTime(){
         return System.currentTimeMillis();
+    }
+
+    private static long getAudioFilesDuration(String absoluteFilePath) {
+        MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+        mediaMetadataRetriever.setDataSource(absoluteFilePath);
+        String durationStr = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+        return Long.parseLong(durationStr);
     }
 }

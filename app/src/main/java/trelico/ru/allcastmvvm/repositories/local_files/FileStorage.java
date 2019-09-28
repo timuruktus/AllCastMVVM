@@ -94,4 +94,36 @@ public class FileStorage{
         }
     }
 
+    public boolean saveAudioFile(InputStream inputStream, String fileName){
+        try{
+            File audioFile = new File(fileName);
+            OutputStream outputStream = null;
+            try{
+                byte[] fileReader = new byte[4096];
+                outputStream = new FileOutputStream(audioFile);
+                while(true){
+                    int read = inputStream.read(fileReader);
+                    if(read == -1){
+                        break;
+                    }
+                    outputStream.write(fileReader, 0, read);
+                }
+                outputStream.flush();
+                return true;
+            } catch(IOException e){
+                return false;
+            } finally{
+                if(inputStream != null){
+                    inputStream.close();
+                }
+
+                if(outputStream != null){
+                    outputStream.close();
+                }
+            }
+        } catch(IOException e){
+            return false;
+        }
+    }
+
 }

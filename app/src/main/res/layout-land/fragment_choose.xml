@@ -36,8 +36,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
+        android:elevation="10dp"
         android:fontFamily="@font/roboto_black"
+        android:outlineProvider="none"
         android:text="@string/allcast"
         android:textColor="@android:color/primary_text_light_nodisable"
         android:textSize="36sp"
@@ -49,7 +51,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="160dp"
+        android:layout_marginTop="80dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
         android:background="@drawable/rounded_rectangle"
@@ -65,7 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
             android:layout_marginEnd="24dp"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="8dp"
             android:backgroundTint="@color/telegram"
             android:fontFamily="@font/roboto_medium"
             android:text="@string/try_text"
@@ -75,26 +77,13 @@
             app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
-            android:id="@+id/telegramTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/roboto"
-            android:text="@string/telegram"
-            android:textSize="24sp"
-            app:layout_constraintBottom_toTopOf="@+id/telegramDescription"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/divider" />
-
-        <TextView
             android:id="@+id/telegramDescription"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="54dp"
             android:layout_marginEnd="24dp"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="8dp"
             android:fontFamily="@font/roboto"
             android:text="@string/telegram_description"
             android:textAlignment="gravity"
@@ -102,16 +91,6 @@
             app:layout_constraintBottom_toTopOf="@+id/telegramTryButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/telegramTitle" />
-
-        <View
-            android:id="@+id/divider"
-            android:layout_width="50dp"
-            android:layout_height="1dp"
-            android:layout_marginTop="55dp"
-            android:background="?android:attr/listDivider"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 

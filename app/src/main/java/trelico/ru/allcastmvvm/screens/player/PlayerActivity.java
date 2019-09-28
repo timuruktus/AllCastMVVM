@@ -66,7 +66,7 @@ public class PlayerActivity extends AppCompatActivity{
     @BindView(R.id.mainText) TextView mainText;
     @BindView(R.id.titleText) TextView titleText;
     @BindView(R.id.authorText) TextView authorText;
-    @BindView(R.id.previousButton) ImageButton previousButton;
+    @BindView(R.id.buttonLeft) ImageButton previousButton;
     @BindView(R.id.playPauseButton) ImageButton playPauseButton;
     @BindView(R.id.seekBar) AppCompatSeekBar seekBar;
     @BindView(R.id.currentTime) TextView currentTime;
@@ -322,7 +322,7 @@ public class PlayerActivity extends AppCompatActivity{
         sendNewRequestToPlay();
     }
 
-    @OnClick(R.id.previousButton)
+    @OnClick(R.id.buttonLeft)
     public void onPreviousButtonClicked(){
         mediaController.getTransportControls().seekTo(0);
     }

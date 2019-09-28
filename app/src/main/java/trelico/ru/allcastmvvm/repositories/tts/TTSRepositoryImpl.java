@@ -8,6 +8,7 @@ import androidx.room.EmptyResultSetException;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import io.reactivex.Observable;
@@ -99,18 +100,20 @@ public class TTSRepositoryImpl implements TTSRepository{
         Log.d(D_TAG, "sendWebCreateRequest in Repo. hash = " + hash);
         TTSPOJO ttspojo = new TTSPOJO();
         ttspojo.setHash(hash);
+        ttspojo.setText(text);
         ttspojo.setLinkToSource(linkToSource);
-        Observable.fromIterable(splitTextIntoPieces(text, DEFAULT_TEXT_LENGTH_LIMIT))
+        ttspojo.setTexts(splitTextIntoPieces(text, DEFAULT_TEXT_LENGTH_LIMIT));
+        audioPOJODao.insert(ttspojo);
+        Observable.fromIterable(ttspojo.getTexts())
                 .map(splittedText -> {
-                    Log.d(D_TAG, "Send web request and add to arraylist in repo");
-                    ttspojo.getTexts().add(splittedText);
+                    Log.d(D_TAG, "Send web request in repo");
                     return audioWebAPI.getTTSRawAudioString(new AudioRequestBody(splittedText), DEFAULT_EMOTION);
                 })
                 .map(responseBody -> {
                     Log.d(D_TAG, "Save file in repo");
                     String fileUri = AndroidUtils.getAudioFilesDir() + File.separator + hash
                             + AndroidUtils.getCurrentSystemTime();
-                    return saveTTS(responseBody, fileUri);
+                    return saveTTS(responseBody.byteStream(), fileUri);
                 })
                 .map(uri -> {
                     Log.d(D_TAG, "uri in TTSRepoImpl = " + uri);
@@ -193,6 +196,13 @@ public class TTSRepositoryImpl implements TTSRepository{
     private String saveTTS(ResponseBody responseBody,
                            String fileName) throws IOException{
         boolean isSuccessful = fileStorage.saveAudioFile(responseBody, fileName);
+        if(isSuccessful) return fileName;
+        else throw new IOException();
+    }
+
+    private String saveTTS(InputStream inputStream,
+                           String fileName) throws IOException{
+        boolean isSuccessful = fileStorage.saveAudioFile(inputStream, fileName);
         if(isSuccessful) return fileName;
         else throw new IOException();
     }

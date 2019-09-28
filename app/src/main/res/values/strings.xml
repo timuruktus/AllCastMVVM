@@ -1,11 +1,11 @@
 <resources>
-    <string name="app_name">Cast</string>
+    <string name="app_name">AllCast</string>
 
     <string name="choose_source_app">Выберите приложения - источники:</string>
     <string name="understand">Понял</string>
     <string name="telegram">Telegram</string>
     <string name="we_will_add_later">Добавим позже</string>
-    <string name="allcast">CAST</string>
+    <string name="allcast">ALLCAST</string>
     <string name="telegram_hint">Сейчас откроется приложение Telegram. Выделите небоходимые посты
         из одного канала и нажмите кнопку "скопировать". Приложение AllCast откроется заново.
         <b>У вас должно быть установлено приложение Telegram.</b></string>
@@ -22,6 +22,18 @@
     <string name="app_is_not_installed">Приложение не установлено</string>
     <string name="text_from">Текст из </string>
     <string name="text_from_site">Текст с сайта </string>
+    <string name="try_text">Попробовать</string>
+
+<!--    CHOOSE FRAGMENT-->
+    <string name="paragraph_1">Озвучка постов из Telegram</string>
+    <string name="paragraph_2">Выберите необходимые публикации и скопируйте их</string>
+    <string name="paragraph_3">Наше приложение автоматически откроется и озвучит выбранные посты</string>
+     <string name="telegram_description"> Озвучка постов из Telegram \n \n
+         • Нажмите кнопку "Попробовать" \n \n
+        • Выделите необходимые публикации и нажмите кнопку "скопировать"\n \n
+        • Приложение AllCast откроется заново \n \n
+        • Внимание! У вас должен быть установлен клиент Telegram</string>
+
 
     <!--PLAYER ACTIVITY-->
     <string name="please_wait_until_content_loads">Надо немного подождать. \n Идёт загрузка</string>
