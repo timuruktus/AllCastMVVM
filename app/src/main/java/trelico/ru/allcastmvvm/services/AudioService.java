@@ -34,7 +34,6 @@ import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
@@ -51,7 +50,8 @@ import io.reactivex.functions.Consumer;
 import trelico.ru.allcastmvvm.MyApp;
 import trelico.ru.allcastmvvm.R;
 import trelico.ru.allcastmvvm.data_sources.local.AppDatabase;
-import trelico.ru.allcastmvvm.repositories.tts.TTSPOJO;
+import trelico.ru.allcastmvvm.repositories.audio.AudioResponse;
+import trelico.ru.allcastmvvm.repositories.audio.requests.TTSRequest;
 import trelico.ru.allcastmvvm.screens.player.PlayerActivity;
 import trelico.ru.allcastmvvm.utils.MediaStyleHelper;
 
@@ -59,16 +59,15 @@ import static android.media.AudioManager.AUDIOFOCUS_GAIN;
 import static android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK;
 import static android.support.v4.media.MediaBrowserCompat.MediaItem;
 import static android.support.v4.media.MediaMetadataCompat.Builder;
-import static android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION;
-import static android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION;
-import static android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_STOPPED;
 import static com.google.android.exoplayer2.Player.STATE_ENDED;
-import static com.google.android.exoplayer2.Timeline.*;
 import static trelico.ru.allcastmvvm.MyApp.D_TAG;
-import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.TEXT;
+import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.METADATA_MEDIA_TYPE;
+import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.METADATA_MEDIA_TYPE_TTS;
+import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.METADATA_TTS_TEXT;
+import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.REQUEST_STATE_EXTRA;
 
 public class AudioService extends MediaBrowserServiceCompat{
 
@@ -76,8 +75,10 @@ public class AudioService extends MediaBrowserServiceCompat{
     public static final String AUDIO_SERVICE_LOG = "Audio Service Log";
     public static final String NOTIFICATION_DEFAULT_CHANNEL_ID = "default_cast_channel";
     public static final String LINK_TO_SOURCE = "Link to source";
-    public static final String REQUEST_STATE_EXTRA = "metadata request state";
-    public static final String DURATION_EXTRA = "duration";
+    public static final String TTS_TEXT = "TTS text";
+    public static final String REPLAY_LAST_REQUEST_ACTION = "Replay last request";
+    public static final String PLAY_TTS_ACTION = "Play text-to-speech";
+    public static final String PLAY_PODCAST_ACTION = "Play podcast";
     private final int NOTIFICATION_ID = 404;
 
     private MediaSessionCompat mediaSession;
@@ -85,7 +86,7 @@ public class AudioService extends MediaBrowserServiceCompat{
     private SimpleExoPlayer exoPlayer;
     private MyApp application;
     private AppDatabase appDatabase;
-    private TTSPOJO currentTTSPOJO;
+    private AudioResponse currentAudioResponse;
     private Disposable ttsDisposable;
     private Disposable stateDisposable;
     private Disposable progressDisposable;
@@ -152,12 +153,8 @@ public class AudioService extends MediaBrowserServiceCompat{
         setSessionToken(mediaSession.getSessionToken());
     }
 
-    private void configureActivityIntent(TTSPOJO ttspojo){
+    private void configureActivityIntent(){
         Intent activityIntent = new Intent(application, PlayerActivity.class);
-        StringBuilder sb = new StringBuilder();
-        for(String pieceOfText : ttspojo.getTexts()) sb.append(pieceOfText);
-        activityIntent.putExtra(TEXT, sb.toString());
-        activityIntent.putExtra(LINK_TO_SOURCE, currentTTSPOJO.getLinkToSource());
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addNextIntentWithParentStack(activityIntent);
         PendingIntent resultPendingIntent =
@@ -234,38 +231,21 @@ public class AudioService extends MediaBrowserServiceCompat{
             setNotification(mediaSession.getController().getPlaybackState().getState());
         }
 
-        /**
-         * Send new audio request only when text is new
-         * @param text
-         * @param extras
-         */
-        @Override
-        public void onPlayFromMediaId(String text, Bundle extras){
-            super.onPlayFromMediaId(text, extras);
-            String linkToSource = extras.getString(LINK_TO_SOURCE);
-            Log.d(D_TAG, "onPlayFromMediaID in AudioService. Text = " + text);
-            if(ttsDisposable != null && !ttsDisposable.isDisposed()) ttsDisposable.dispose();
-            audioHelper.sendAudioRequest(text, linkToSource);
-            ttsDisposable = audioHelper.getTTSObservable()
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(TTSConsumer, getTTSErrorConsumer);
-        }
 
-        /**
-         * Always send new audio request
-         * @param text
-         * @param extras
-         */
         @Override
-        public void onPrepareFromMediaId(String text, Bundle extras){
-            super.onPrepareFromMediaId(text, extras);
-            String linkToSource = extras.getString(LINK_TO_SOURCE);
-            Log.d(D_TAG, "onPrepareFromMediaId in AudioService. Text = " + text);
-            if(ttsDisposable != null && !ttsDisposable.isDisposed()) ttsDisposable.dispose();
-            audioHelper.sendNewAudioRequest(text, linkToSource);
-            ttsDisposable = audioHelper.getTTSObservable()
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(TTSConsumer, getTTSErrorConsumer);
+        public void onCustomAction(String action, Bundle extras){
+            super.onCustomAction(action, extras);
+            if(action.equals(REPLAY_LAST_REQUEST_ACTION)) audioHelper.replayLastRequest();
+            else if(action.equals(PLAY_TTS_ACTION)){
+                if(ttsDisposable != null && !ttsDisposable.isDisposed()) ttsDisposable.dispose();
+                String linkToSource = extras.getString(LINK_TO_SOURCE);
+                String text = extras.getString(TTS_TEXT);
+                TTSRequest request = new TTSRequest(text, linkToSource);
+                audioHelper.sendAudioRequest(request);
+                ttsDisposable = audioHelper.getTTSObservable()
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(audioConsumer, audioErrorConsumer);
+            }
         }
 
         @Override
@@ -322,7 +302,12 @@ public class AudioService extends MediaBrowserServiceCompat{
             super.onSeekTo(pos);
             exoPlayer.seekTo(pos);
         }
+
     };
+
+    private void ttsSeek(long seekValue){
+        //TODO;
+    }
 
     private void setPlaybackState(int state){
         long currentPlayedTimeInMs = exoPlayer.getCurrentPosition();
@@ -355,11 +340,14 @@ public class AudioService extends MediaBrowserServiceCompat{
         mediaSession.setExtras(bundle);
     }
 
-    private void updateMetadataFromTrack(long duration, String title, String text){
-        if(title == null) title = "AllCast";
-        metadataBuilder.putLong(METADATA_KEY_DURATION, duration);
-        metadataBuilder.putString(METADATA_KEY_TITLE, title);
-        metadataBuilder.putString(METADATA_KEY_DISPLAY_DESCRIPTION, text);
+    private void updateMetadata(AudioResponse audioResponse){
+        if(audioResponse instanceof TTS){
+            TTS tts = (TTS) audioResponse;
+            metadataBuilder.putString(METADATA_TTS_TEXT, tts.getText());
+            metadataBuilder.putString(METADATA_MEDIA_TYPE, METADATA_MEDIA_TYPE_TTS);
+        }else if(audioResponse instanceof Podcast){
+
+        }
         mediaSession.setMetadata(metadataBuilder.build());
     }
 
@@ -386,7 +374,7 @@ public class AudioService extends MediaBrowserServiceCompat{
         mediaSession.release();
         exoPlayer.release();
         stateDisposable.dispose();
-        ttsDisposable.dispose();
+        if(ttsDisposable != null) ttsDisposable.dispose();
     }
 
     private AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = focusChange -> {
@@ -413,37 +401,12 @@ public class AudioService extends MediaBrowserServiceCompat{
 
     private Consumer<Integer> requestStateConsumer = this::updateRequestState;
 
-    private Consumer<TTSPOJO> TTSConsumer = ttspojo -> {
-        if(currentTTSPOJO != null && !currentTTSPOJO.getHash().equals(ttspojo.getHash())){
-            exoPlayer.prepare(playlistMediaSource, true, true);
-            playlistMediaSource.clear();
-        }
-        currentTTSPOJO = ttspojo;
-        int urisArraySize = ttspojo.getUris().size();
-        Log.d(D_TAG, "urisArraySize in Service = " + urisArraySize);
-        Log.d(D_TAG, "playlistMediaSource.getSize() in Service = " + playlistMediaSource.getSize());
-        for(int i = playlistMediaSource.getSize(); i < urisArraySize; i++){
-            Uri currentUri = Uri.parse(ttspojo.getUris().get(i));
-            Log.d(D_TAG, "add uri in AudioService = " + currentUri.toString());
-            ProgressiveMediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .setTag(currentUri).createMediaSource(currentUri);
-            playlistMediaSource.addMediaSource(mediaSource);
-            exoPlayer.prepare(playlistMediaSource, false, false);
-        }
-        long duration = 0;
-        exoPlayer.getCurrentPosition();
-        Timeline timeline = exoPlayer.getCurrentTimeline();
-        Log.d(D_TAG, "Windows count in Service = " + timeline.getWindowCount());
-        for(int i = 0; i < timeline.getWindowCount(); i++){
-            duration += timeline.getWindow(i, new Window()).getDurationMs();
-        }
-        StringBuilder sb = new StringBuilder();
-        for(String splittedText : ttspojo.getTexts()) sb.append(splittedText);
-        String text = sb.toString();
-        updateMetadataFromTrack(duration, null, text);
+    private Consumer<AudioResponse> audioConsumer = audio -> {
+        if(audio instanceof TTS) consumeTTS((TTS) audio);
+        else if(audio instanceof Podcast) consumePodcast((Podcast) audio);
     };
 
-    private Consumer<Throwable> getTTSErrorConsumer = Throwable::printStackTrace;
+    private Consumer<Throwable> audioErrorConsumer = Throwable::printStackTrace;
 
     private final BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver(){
         @Override
@@ -453,6 +416,33 @@ public class AudioService extends MediaBrowserServiceCompat{
             }
         }
     };
+
+    private void consumeTTS(TTS currentTTS){
+        TTS lastTTS = null;
+        if(currentAudioResponse != null && currentAudioResponse instanceof TTS) lastTTS = (TTS) currentAudioResponse;
+        if(currentAudioResponse != null && (lastTTS != null
+                && !lastTTS.getHash().equals(currentTTS.getHash())) || lastTTS == null){
+            playlistMediaSource.clear();
+            exoPlayer.prepare(playlistMediaSource, true, true);
+        }
+        currentAudioResponse = currentTTS;
+        int urisArraySize = currentTTS.getUris().size();
+        Log.d(D_TAG, "urisArraySize in Service = " + urisArraySize);
+        Log.d(D_TAG, "playlistMediaSource.getSize() in Service = " + playlistMediaSource.getSize());
+        for(int i = playlistMediaSource.getSize(); i < urisArraySize; i++){
+            Uri currentUri = Uri.parse(currentTTS.getUris().get(i));
+            Log.d(D_TAG, "add uri in AudioService = " + currentUri.toString());
+            ProgressiveMediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .setTag(currentUri).createMediaSource(currentUri);
+            playlistMediaSource.addMediaSource(mediaSource);
+            exoPlayer.prepare(playlistMediaSource, false, false);
+        }
+        updateMetadata(currentTTS);
+    }
+
+    private void consumePodcast(Podcast podcast){
+
+    }
 
     private Notification getNotification(int playbackState){
         MediaControllerCompat controller = mediaSession.getController();
@@ -490,7 +480,7 @@ public class AudioService extends MediaBrowserServiceCompat{
                 .setOnlyAlertOnce(true)
                 .setChannelId(NOTIFICATION_DEFAULT_CHANNEL_ID);
 
-        configureActivityIntent(currentTTSPOJO);
+        configureActivityIntent();
 
         return builder.build();
     }

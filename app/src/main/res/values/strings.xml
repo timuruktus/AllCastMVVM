@@ -24,11 +24,11 @@
     <string name="text_from_site">Текст с сайта </string>
     <string name="try_text">Попробовать</string>
 
-<!--    CHOOSE FRAGMENT-->
+    <!--    CHOOSE FRAGMENT-->
     <string name="paragraph_1">Озвучка постов из Telegram</string>
     <string name="paragraph_2">Выберите необходимые публикации и скопируйте их</string>
     <string name="paragraph_3">Наше приложение автоматически откроется и озвучит выбранные посты</string>
-     <string name="telegram_description"> Озвучка постов из Telegram \n \n
+    <string name="telegram_description"> Озвучка постов из Telegram \n \n
          • Нажмите кнопку "Попробовать" \n \n
         • Выделите необходимые публикации и нажмите кнопку "скопировать"\n \n
         • Приложение AllCast откроется заново \n \n
@@ -41,5 +41,8 @@
     <string name="try_again">Попробовать снова</string>
     <string name="text_from_app">Текст из приложения</string>
     <string name="text_from_link">Текст по ссылке</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

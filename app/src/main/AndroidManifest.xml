@@ -15,6 +15,9 @@
         android:theme="@style/AppTheme"
         android:name=".MyApp"
         tools:ignore="GoogleAppIndexingWarning">
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-4738643319962876~1991317875"/>
         <activity android:name=".screens.player.PlayerActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:parentActivityName=".screens.main.MainActivity"></activity>

@@ -1,11 +1,9 @@
 package trelico.ru.allcastmvvm.screens.choose;
 
 
-import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Outline;
 import android.net.Uri;
@@ -28,11 +26,13 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import trelico.ru.allcastmvvm.MyApp;
 import trelico.ru.allcastmvvm.R;
+import trelico.ru.allcastmvvm.repositories.audio.AudioRepository;
+import trelico.ru.allcastmvvm.repositories.audio.AudioRepositoryImpl;
+import trelico.ru.allcastmvvm.repositories.audio.requests.TTSRequest;
 import trelico.ru.allcastmvvm.screens.player.PlayerActivity;
 import trelico.ru.allcastmvvm.utils.AndroidUtils;
 
 import static trelico.ru.allcastmvvm.MyApp.D_TAG;
-import static trelico.ru.allcastmvvm.screens.player.PlayerActivity.TEXT;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -53,6 +53,7 @@ public class ChooseFragment extends Fragment{
     private ClipboardManager.OnPrimaryClipChangedListener clipboardListener;
     private ChooseViewModel viewModel;
     private ClipboardManager clipboard;
+    private AudioRepository audioRepository;
 
     public ChooseFragment(){
         // Required empty public constructor
@@ -67,6 +68,7 @@ public class ChooseFragment extends Fragment{
         viewModel = viewModelProvider.get(ChooseViewModel.class);
         ButterKnife.bind(this, view);
         telegramViewBackground.setOutlineProvider(tryButtonOutlineProvider);
+        audioRepository = AudioRepositoryImpl.getInstance();
         return view;
     }
 
@@ -103,7 +105,7 @@ public class ChooseFragment extends Fragment{
                 if(!copiedText.isEmpty()){
                     clipboard.removePrimaryClipChangedListener(clipboardListener);
                     Log.d(D_TAG, "getListener in ChooseFragment. Text size = " + copiedText.length());
-                    launchPlayerActivity(TEXT, copiedText);
+                    launchPlayerActivity(copiedText, null);
                     AndroidUtils.bringActivityToForeground(getContext(), PlayerActivity.class);
                 }
             } catch(NullPointerException ex){
@@ -120,12 +122,13 @@ public class ChooseFragment extends Fragment{
     }
 
     /**
-     * @param content - content. Link or raw copied texts.
-     * @param tag     - TEXT or LINK_TO_SOURCE in PlayerActivity.
+     * @param text         - copied text.
+     * @param linkToSource - link to source where text was given of.
      */
-    private void launchPlayerActivity(String tag, String content){
+    private void launchPlayerActivity(String text, String linkToSource){
         Intent intent = new Intent(getContext(), PlayerActivity.class);
-        intent.putExtra(tag, content);
+        TTSRequest ttsRequest = new TTSRequest(text, linkToSource);
+        audioRepository.sendRequest(ttsRequest);
         startActivity(intent);
     }
 

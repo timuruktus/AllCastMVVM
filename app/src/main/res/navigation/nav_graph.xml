@@ -15,4 +15,9 @@
         android:name="trelico.ru.allcastmvvm.screens.player.PlayerActivity"
         android:label="activity_player"
         tools:layout="@layout/activity_player" />
+    <fragment
+        android:id="@+id/ttsPlayerFragment"
+        android:name="trelico.ru.allcastmvvm.screens.player.TTSPlayerFragment"
+        android:label="fragment_ttsplayer"
+        tools:layout="@layout/fragment_ttsplayer" />
 </navigation>

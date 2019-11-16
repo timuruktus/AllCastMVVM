@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".screens.player.TTSPlayerFragment">
+
+    <ImageButton
+        android:id="@+id/buttonSeekBackwards"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/ic_10_back_black"
+        android:backgroundTintMode="src_in"
+        android:foregroundTintMode="add"
+        android:outlineProvider="none"
+        android:scaleType="centerInside"
+        app:layout_constraintBottom_toBottomOf="@+id/ttsPlayPauseButton"
+        app:layout_constraintEnd_toStartOf="@+id/ttsPlayPauseButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/ttsPlayPauseButton" />
+
+    <ImageButton
+        android:id="@+id/ttsPlayPauseButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/ic_play_black"
+        android:backgroundTintMode="src_in"
+        android:foregroundTintMode="add"
+        android:outlineProvider="none"
+        android:scaleType="centerInside"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/ttsProgressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        app:layout_constraintBottom_toBottomOf="@+id/ttsPlayPauseButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/ttsPlayPauseButton"
+        app:layout_constraintTop_toTopOf="@+id/ttsPlayPauseButton" />
+
+    <ScrollView
+        android:id="@+id/scrollView2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:overScrollMode="never"
+        app:layout_constraintBottom_toTopOf="@+id/ttsPlayPauseButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ttsAd">
+
+        <TextView
+            android:id="@+id/ttsText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto"
+            android:padding="8dp"
+            android:textColor="@color/secondaryText"
+            android:textSize="18sp" />
+    </ScrollView>
+
+    <com.google.android.gms.ads.AdView
+        xmlns:ads="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/ttsAd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-4738643319962876/2138178602"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

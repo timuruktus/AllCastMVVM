@@ -1,40 +1,40 @@
 package trelico.ru.allcastmvvm.services;
 
 import io.reactivex.Observable;
-import trelico.ru.allcastmvvm.repositories.tts.TTSPOJO;
-import trelico.ru.allcastmvvm.repositories.tts.TTSRepository;
-import trelico.ru.allcastmvvm.repositories.tts.TTSRepositoryImpl;
-import trelico.ru.allcastmvvm.repositories.tts.TTSResponseContainer;
+import trelico.ru.allcastmvvm.repositories.audio.AudioRepository;
+import trelico.ru.allcastmvvm.repositories.audio.AudioResponse;
+import trelico.ru.allcastmvvm.repositories.audio.AudioRepositoryImpl;
+import trelico.ru.allcastmvvm.repositories.audio.AudioResponseContainer;
+import trelico.ru.allcastmvvm.repositories.audio.requests.AudioRequest;
+import trelico.ru.allcastmvvm.repositories.audio.requests.TTSRequest;
 
 public class AudioHelper{
 
-    private TTSResponseContainer ttsResponseContainer;
-    private TTSRepository ttsRepository;
+    private AudioResponseContainer audioResponseContainer;
+    private AudioRepository audioRepository;
     private Observable<Integer> requestStateObservable;
     private String savedText;
 
     public AudioHelper(){
-        ttsRepository = TTSRepositoryImpl.getInstance();
-        ttsResponseContainer = ttsRepository.subscribeCurrentTTSUpdates();
-        requestStateObservable = ttsResponseContainer.getRequestStateObservable();
+        audioRepository = AudioRepositoryImpl.getInstance();
+        audioResponseContainer = audioRepository.subscribeCurrentAudioUpdates();
+        requestStateObservable = audioResponseContainer.getRequestStateObservable();
     }
 
-    protected void sendAudioRequest(String text, String linkToSource){
-        if(savedText != null && savedText.equals(text)) return;
-        sendNewAudioRequest(text, linkToSource);
+    protected void replayLastRequest(){
+        audioRepository.replayLastRequest();
     }
 
-    protected void sendNewAudioRequest(String text, String linkToSource){
-        ttsRepository.createTTS(text, linkToSource);
-        savedText = text;
+    protected void sendAudioRequest(AudioRequest audioRequest){
+        audioRepository.sendRequest(audioRequest);
     }
 
     public Observable<Integer> getRequestStateObservable(){
         return requestStateObservable;
     }
 
-    public Observable<TTSPOJO> getTTSObservable(){
-        return ttsResponseContainer.getResponseObservable();
+    public Observable<? extends AudioResponse> getTTSObservable(){
+        return audioResponseContainer.getResponseObservable();
     }
 
 }

@@ -42,7 +42,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="visible"
-        tools:visibility="visible">
+        tools:visibility="gone">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -56,6 +56,14 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp" />
+
             <TextView
                 android:id="@+id/pleaseWaitText"
                 android:layout_width="wrap_content"
@@ -65,181 +73,30 @@
                 android:textAlignment="center"
                 android:textSize="18sp" />
 
-            <ProgressBar
-                android:id="@+id/progressBar"
-                style="?android:attr/progressBarStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="16dp" />
-
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/playerLayout"
+        android:id="@+id/containerLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
-        tools:visibility="gone">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible">
 
-        <ImageButton
-            android:id="@+id/buttonLeft"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:background="@drawable/ic_back_black"
-            android:backgroundTintMode="src_in"
-            android:foregroundTintMode="add"
-            android:outlineProvider="none"
-            android:scaleType="centerInside"
-            app:layout_constraintBottom_toBottomOf="@+id/playPauseButton"
-            app:layout_constraintEnd_toStartOf="@+id/playPauseButton"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/playPauseButton" />
-
-        <ImageButton
-            android:id="@+id/playPauseButton"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginBottom="32dp"
-            android:background="@drawable/ic_play_black"
-            android:backgroundTintMode="src_in"
-            android:foregroundTintMode="add"
-            android:outlineProvider="none"
-            android:scaleType="centerInside"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <ImageView
-            android:id="@+id/buttonRight"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            app:layout_constraintBottom_toBottomOf="@+id/playPauseButton"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/playPauseButton"
-            app:layout_constraintTop_toTopOf="@+id/playPauseButton"
-            app:srcCompat="@drawable/ic_forward_black" />
-
-        <ProgressBar
-            android:id="@+id/inProgressBar"
-            style="?android:attr/progressBarStyle"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_marginEnd="8dp"
-            app:layout_constraintEnd_toStartOf="@+id/totalTime"
-            app:layout_constraintTop_toTopOf="@+id/totalTime" />
-
-        <ScrollView
-            android:id="@+id/scrollView2"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="24dp"
-            android:overScrollMode="never"
-            app:layout_constraintBottom_toTopOf="@+id/titleText"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/mainTitleText">
-
-            <TextView
-                android:id="@+id/mainText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/roboto"
-                android:padding="8dp"
-                android:text="eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeboiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                android:textColor="@color/secondaryText"
-                android:textSize="18sp" />
-        </ScrollView>
-
-        <TextView
-            android:id="@+id/authorText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginBottom="16dp"
-            android:fontFamily="@font/roboto_medium"
-            android:singleLine="true"
-            android:text="TextView"
-            android:textAlignment="center"
-            android:textColor="@color/secondaryText"
-            android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@+id/seekBar"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:visibility="gone" />
-
-        <TextView
-            android:id="@+id/mainTitleText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:fontFamily="@font/roboto"
-            android:text="TextView"
-            android:textColor="@color/primaryText"
-            app:layout_constraintBottom_toTopOf="@+id/scrollView2"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/titleText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginBottom="16dp"
-            android:fontFamily="@font/roboto_bold"
-            android:singleLine="true"
-            android:text="TextView"
-            android:textAlignment="center"
-            android:textColor="@color/primaryText"
-            android:textSize="18sp"
-            android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@+id/authorText"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:visibility="gone" />
-
-        <TextView
-            android:id="@+id/currentTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="00:00"
-            app:layout_constraintStart_toStartOf="@+id/seekBar"
-            app:layout_constraintTop_toBottomOf="@+id/seekBar" />
-
-        <TextView
-            android:id="@+id/totalTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="00:00"
-            app:layout_constraintEnd_toEndOf="@+id/seekBar"
-            app:layout_constraintTop_toBottomOf="@+id/seekBar" />
-
-        <androidx.appcompat.widget.AppCompatSeekBar
-            android:id="@+id/seekBar"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginBottom="32dp"
-            app:layout_constraintBottom_toTopOf="@+id/playPauseButton"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
+        <fragment
+            android:id="@+id/navHostFragment"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/nav_graph" />
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
